@@ -3,7 +3,7 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
-from database.models import setup_db, db_drop_and_create_all, add_test_data, Concert, Player
+from models import setup_db, db_drop_and_create_all, add_test_data, Concert, Player
 from auth.auth import AuthError, requires_auth
 
 
