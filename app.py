@@ -4,8 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
 
-from .models import setup_db, db_drop_and_create_all, add_test_data, Concert, Player, db
-from .auth.auth import AuthError, requires_auth
+from models import setup_db, db_drop_and_create_all, add_test_data, Concert, Player, db
+from auth.auth import AuthError, requires_auth
 
 
 def create_app(test_config=None):
