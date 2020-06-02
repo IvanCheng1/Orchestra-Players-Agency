@@ -3,6 +3,8 @@ from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
 import datetime
+from flask_migrate import Migrate, MigrateCommand
+
 
 database_name = "players"
 project_dir = os.path.dirname(os.path.abspath(__file__))
@@ -21,6 +23,8 @@ def setup_db(app, database_path=database_path):
     db.app = app
     db.init_app(app)
     db.create_all()
+
+    migrate = Migrate(app, db)
 
 
 def db_drop_and_create_all():
