@@ -12,3 +12,5 @@ ehthumbs.db
 Thumbs.db
 
 env/
+.DS_Store
+.DS_Store
