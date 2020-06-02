@@ -3,7 +3,8 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
-from models import setup_db, db_drop_and_create_all, add_test_data, Concert, Player
+from database.models import setup_db, db_drop_and_create_all, add_test_data, Concert, Player
+from auth.auth import AuthError, requires_auth
 
 
 def create_app(test_config=None):
@@ -32,7 +33,11 @@ def create_app(test_config=None):
     Endpoint to handle GET requests for concerts
     '''
     @app.route('/concerts')
-    def get_concerts():
+    @requires_auth('get:concerts')
+    def get_concerts(payload):
+        if 'get:concerts' not in payload['permissions']:
+            abort(405)
+
         concerts = Concert.query.all()
 
         if len(concerts) == 0:
@@ -48,7 +53,11 @@ def create_app(test_config=None):
     Endpoint to handle POST requests for concerts
     '''
     @app.route('/concerts', methods=['POST'])
-    def post_concert():
+    @requires_auth('post:concerts')
+    def post_concert(payload):
+        if 'post:concerts' not in payload['permissions']:
+            abort(405)
+
         body = request.get_json()
         title = body.get('title')
         style = body.get('style')
@@ -76,8 +85,10 @@ def create_app(test_config=None):
     Endpoint to handle DELETE requests for concerts
     '''
     @app.route('/concerts/<int:concert_id>', methods=['DELETE'])
-    def delete_concert(concert_id):
-
+    @requires_auth('delete:concerts')
+    def delete_concert(payload, concert_id):
+        if 'delete:concerts' not in payload['permissions']:
+            abort(405)
         try:
             concert = Concert.query.filter(
                 Concert.id == concert_id).one_or_none()
@@ -98,7 +109,11 @@ def create_app(test_config=None):
     Endpoint to handle PATCH requests for concerts
     '''
     @app.route('/concerts/<int:concert_id>', methods=['PATCH'])
-    def patch_concert(concert_id):
+    @requires_auth('patch:concerts')
+    def patch_concert(payload, concert_id):
+        if 'patch:concerts' not in payload['permissions']:
+            abort(405)
+
         body = request.get_json()
         title = body.get('title', None)
         style = body.get('style', None)
@@ -132,7 +147,11 @@ def create_app(test_config=None):
     Endpoint to handle GET requests for players
     '''
     @app.route('/players')
-    def get_players():
+    @requires_auth('get:players')
+    def get_players(payload):
+        if 'get:players' not in payload['permissions']:
+            abort(405)
+
         players = Player.query.all()
 
         if len(players) == 0:
@@ -148,7 +167,11 @@ def create_app(test_config=None):
     Endpoint to handle POST requests for players
     '''
     @app.route('/players', methods=['POST'])
-    def post_player():
+    @requires_auth('post:players')
+    def post_player(payload):
+        if 'post:players' not in payload['permissions']:
+            abort(405)
+
         body = request.get_json()
         name = body.get('name')
         instrument = body.get('instrument')
@@ -176,7 +199,10 @@ def create_app(test_config=None):
     Endpoint to handle DELETE requests for players
     '''
     @app.route('/players/<int:player_id>', methods=['DELETE'])
-    def delete_player(player_id):
+    @requires_auth('delete:players')
+    def delete_player(payload, player_id):
+        if 'delete:players' not in payload['permissions']:
+            abort(405)
 
         try:
             player = Player.query.filter(
@@ -198,7 +224,11 @@ def create_app(test_config=None):
     Endpoint to handle PATCH requests for players
     '''
     @app.route('/players/<int:player_id>', methods=['PATCH'])
-    def patch_player(player_id):
+    @requires_auth('patch:players')
+    def patch_player(payload, player_id):
+        if 'patch:players' not in payload['permissions']:
+            abort(405)
+
         body = request.get_json()
         name = body.get('name', None)
         instrument = body.get('instrument', None)
@@ -238,9 +268,9 @@ def create_app(test_config=None):
         }), 404
 
 
-    # @app.errorhandler(AuthError)
-    # def auth_error(error):
-    #     return jsonify(error.error), error.status_code
+    @app.errorhandler(AuthError)
+    def auth_error(error):
+        return jsonify(error.error), error.status_code
 
 
     @app.errorhandler(401)
@@ -280,8 +310,8 @@ def create_app(test_config=None):
 
     return app
 
-APP = create_app()
+app = create_app()
 
 if __name__ == '__main__':
-    # APP.run(host='0.0.0.0', port=8080, debug=True)
-    APP.run(host='127.0.0.1', port=8080, debug=True)
+    # app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8080, debug=True)

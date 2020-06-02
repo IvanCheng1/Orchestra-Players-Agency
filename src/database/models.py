@@ -1,11 +1,14 @@
 import os
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
+import datetime
 
-database_filename = "database.db"
+PACKAGE_PARENT = '..'
+
+database_name = "players"
 project_dir = os.path.dirname(os.path.abspath(__file__))
-database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
+database_path = "postgres://{}/{}".format('localhost:5432', database_name)
 
 db = SQLAlchemy()
 
@@ -13,95 +16,106 @@ db = SQLAlchemy()
 setup_db(app)
     binds a flask application and a SQLAlchemy service
 '''
-def setup_db(app):
+def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
+    db.create_all()
 
-'''
-db_drop_and_create_all()
-    drops the database tables and starts fresh
-    can be used to initialize a clean database
-    !!NOTE you can change the database_filename variable to have multiple verisons of a database
-'''
+
 def db_drop_and_create_all():
     db.drop_all()
     db.create_all()
 
+def add_test_data():
+    concert = Concert(
+        title = 'Bach returns',
+        style = 'Baroque',
+        concert_date = '20200101'
+    )
+
+    player = Player(
+        name = "Austin Pierce",
+        instrument = "Violin",
+        experience = 3
+    )
+
+    player.insert()
+    concert.insert()
+    db.session.commit()
+
+
+
 '''
-Drink
-a persistent drink entity, extends the base SQLAlchemy Model
+Concert
+
 '''
-class Drink(db.Model):
-    # Autoincrementing, unique primary key
-    id = Column(Integer().with_variant(Integer, "sqlite"), primary_key=True)
-    # String Title
-    title = Column(String(80), unique=True)
-    # the ingredients blob - this stores a lazy json blob
-    # the required datatype is [{'color': string, 'name':string, 'parts':number}]
-    recipe =  Column(String(180), nullable=False)
+class Concert(db.Model):
+    __tablename__ = 'concert'
 
-    '''
-    short()
-        short form representation of the Drink model
-    '''
-    def short(self):
-        print(json.loads(self.recipe))
-        short_recipe = [{'color': r['color'], 'parts': r['parts']} for r in json.loads(self.recipe)]
-        return {
-            'id': self.id,
-            'title': self.title,
-            'recipe': short_recipe
-        }
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    style = Column(String)
+    concert_date = Column(db.DateTime)
 
-    '''
-    long()
-        long form representation of the Drink model
-    '''
-    def long(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'recipe': json.loads(self.recipe)
-        }
+    def __init__(self, title, style, concert_date):
+        self.title = title
+        self.style = style
+        self.concert_date = concert_date
 
-    '''
-    insert()
-        inserts a new model into a database
-        the model must have a unique name
-        the model must have a unique id or null id
-        EXAMPLE
-            drink = Drink(title=req_title, recipe=req_recipe)
-            drink.insert()
-    '''
     def insert(self):
         db.session.add(self)
         db.session.commit()
 
-    '''
-    delete()
-        deletes a new model into a database
-        the model must exist in the database
-        EXAMPLE
-            drink = Drink(title=req_title, recipe=req_recipe)
-            drink.delete()
-    '''
+    def update(self):
+        db.session.commit()
+
     def delete(self):
         db.session.delete(self)
         db.session.commit()
 
-    '''
-    update()
-        updates a new model into a database
-        the model must exist in the database
-        EXAMPLE
-            drink = Drink.query.filter(Drink.id == id).one_or_none()
-            drink.title = 'Black Coffee'
-            drink.update()
-    '''
+    def format(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'style': self.style,
+            'concert_date': self.concert_date
+        }
+
+
+'''
+Player
+
+'''
+class Player(db.Model):
+    __tablename__ = 'player'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    instrument = Column(String)
+    experience = Column(Integer)
+
+    def __init__(self, name, instrument, experience):
+        self.name = name
+        self.instrument = instrument
+        self.experience = experience
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
     def update(self):
         db.session.commit()
 
-    def __repr__(self):
-        return json.dumps(self.short())
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def format(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'instrument': self.instrument,
+            'experience': str(self.experience) + ' year(s)'
+        }

@@ -1,0 +1,17 @@
+
+auth0_config = {
+    'AUTH0_DOMAIN': 'ivancheng.eu.auth0.com',
+    'ALGORITHMS': ['RS256'],
+    'API_AUDIENCE': 'player'
+}
+
+
+jwt_tokens = {
+    "Concert Assistant": "Bearer ",
+    "Concert Fixer": "Bearer ",
+    "Concert Manager": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImVMVWRJVFVwVk1oNTRPOUg4cHhFXyJ9.eyJpc3MiOiJodHRwczovL2l2YW5jaGVuZy5ldS5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NWVkNjI2NzY1NDEwNmUwYjk3ZGVjOTg1IiwiYXVkIjoicGxheWVyIiwiaWF0IjoxNTkxMDkyOTMzLCJleHAiOjE1OTExNjQ5MzMsImF6cCI6IkZvbHZlN3hlM09KMEYzeXZ6SUJHc2l2cWJmSU5KQWE3Iiwic2NvcGUiOiIiLCJwZXJtaXNzaW9ucyI6WyJkZWxldGU6Y29uY2VydHMiLCJkZWxldGU6cGxheWVycyIsImdldDpjb25jZXJ0cyIsImdldDpwbGF5ZXJzIiwicGF0Y2g6Y29uY2VydHMiLCJwYXRjaDpwbGF5ZXJzIiwicG9zdDpjb25jZXJ0cyIsInBvc3Q6cGxheWVycyJdfQ.l0fmfbmGJ2Y16phttsR7SAmhokJ5OgHXJ772AMnrp8nfBEIQ34gC7ya-XqcSQLeI55bM533J-xRaDTXJwmMNScO51wgP9PQZSLO1K1wKf-zwXz5EAzOoaRHUq7YFUntMAkHhlBqierK1OY8d0yi0QFm2_IT0yOgW_1S7q3wtSdOiV1nox_o6aEZTRvhH7HWziu3mLXZbyOvC0BpEB1nYXcb-XMoeOmc-y00dE3SDYOed547WRC3hxNZtPkUntwwDT9g_jw4g3_heTazWcPoL__WWMbJi1rRfl7iQVXGw3JeYnn-rbBjnIuYAD2TtqPZWBqywiyKc1HqOX5fiZTltog"
+}
+
+
+
+
