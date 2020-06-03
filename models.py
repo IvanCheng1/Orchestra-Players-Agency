@@ -54,10 +54,16 @@ def add_test_data():
         experience = 2
     )
 
+    orchestra = Orchestra(
+        concert_id = 1,
+        player_id = 1
+    )
+
     player.insert()
     player2.insert()
     concert.insert()
     concert2.insert()
+    orchestra.insert()
     db.session.commit()
 
 
@@ -72,6 +78,7 @@ class Concert(db.Model):
     title = Column(String)
     style = Column(String)
     concert_date = Column(db.DateTime)
+    orchestra = db.relationship("Orchestra", backref="concert", passive_deletes=True, lazy=True)
 
     def __init__(self, title, style, concert_date):
         self.title = title
@@ -94,7 +101,8 @@ class Concert(db.Model):
             'id': self.id,
             'title': self.title,
             'style': self.style,
-            'concert_date': self.concert_date
+            'concert_date': self.concert_date,
+            'players_booked': Orchestra.query.filter(Orchestra.concert_id == self.id).count()
         }
 
 
@@ -108,6 +116,7 @@ class Player(db.Model):
     name = Column(String)
     instrument = Column(String)
     experience = Column(Integer)
+    orchestra = db.relationship("Orchestra", backref="player", passive_deletes=True, lazy=True)
 
     def __init__(self, name, instrument, experience):
         self.name = name
@@ -130,5 +139,31 @@ class Player(db.Model):
             'id': self.id,
             'name': self.name,
             'instrument': self.instrument,
-            'experience': str(self.experience) + ' year(s)'
+            'experience': str(self.experience) + ' year(s)',
+            'concerts_booked': Orchestra.query.filter(Orchestra.player_id == self.id).count()
         }
+
+#----------------------------------------------------------------------------#
+# Orchestra (association table)
+#----------------------------------------------------------------------------#
+
+class Orchestra(db.Model):
+    __tablename__ = 'orchestra'
+
+    id = db.Column(db.Integer, primary_key=True)
+    concert_id = db.Column(db.Integer, db.ForeignKey(
+        'concert.id', ondelete='CASCADE'), nullable=False)
+    player_id = db.Column(db.Integer, db.ForeignKey(
+        'player.id', ondelete='CASCADE'), nullable=False)
+
+    def __init__(self, concert_id, player_id):
+        self.concert_id = concert_id
+        self.player_id = player_id
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def __repr__(self):
+        return (f"concert_id:  {self.concert_id}\n"
+                f"player_id:   {self.player_id}")

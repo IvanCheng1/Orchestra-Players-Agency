@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
 
-from models import setup_db, db_drop_and_create_all, add_test_data, Concert, Player, db
+from models import setup_db, db_drop_and_create_all, add_test_data, Concert, Player, Orchestra, db
 from auth.auth import AuthError, requires_auth
 
 
@@ -16,8 +16,9 @@ def create_app(test_config=None):
     CORS(app)
 
     # To reset database
-    # db_drop_and_create_all()
-    # add_test_data()
+    db_drop_and_create_all()
+    add_test_data()
+    
 
     @app.after_request
     def after_request(response):
@@ -262,24 +263,50 @@ def create_app(test_config=None):
         except:
             abort(422)
 
+    
+    #----------------------------------------------------------------------------#
+    # Book players to concerts
+    #----------------------------------------------------------------------------#
+
+    '''
+    Endpoint to handle POST requests for players
+    '''
+    @app.route('/players/<int:player_id>', methods=['POST'])
+    @requires_auth('post:players')
+    def book_players(payload, player_id):
+        if 'post:players' not in payload['permissions']:
+            abort(405)
+
+        body = request.get_json()
+        concert_id = body.get('concert_id', None)
+
+        # check if player already exist in concert
+        exists = Orchestra.query.filter_by(concert_id=concert_id, player_id=player_id).scalar() is not None
+
+        orchestra = Orchestra(
+            concert_id = concert_id,
+            player_id = player_id
+        )
+
+        if concert_id is None or exists:
+            abort(422)
+
+        orchestra.insert()
+
+        return jsonify({
+            'success': True,
+            'concert': concert_id,
+            'player': player_id
+        })
+
 
     #----------------------------------------------------------------------------#
     # Error Handlers
     #----------------------------------------------------------------------------#
 
-    @app.errorhandler(404)
-    def not_found(error):
-        return jsonify({
-            'success': False,
-            'error': 404,
-            'message': 'resource not found'
-        }), 404
-
-
     @app.errorhandler(AuthError)
     def auth_error(error):
         return jsonify(error.error), error.status_code
-
 
     @app.errorhandler(401)
     def unauthorized(error):
@@ -298,6 +325,13 @@ def create_app(test_config=None):
             'message': 'forbidden'
         }), 403
 
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 404,
+            'message': 'resource not found'
+        }), 404
 
     @app.errorhandler(405)
     def method_not_allowed(error):
@@ -306,7 +340,6 @@ def create_app(test_config=None):
             'error': 405,
             'message': 'method not allowed'
         }), 405
-
 
     @app.errorhandler(422)
     def unprocessable(error):
