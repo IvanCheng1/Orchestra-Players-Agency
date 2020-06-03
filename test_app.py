@@ -18,7 +18,7 @@ class AgencyTest(unittest.TestCase):
         self.client = self.app.test_client
         self.database_name = "players_test"
         self.database_path = "postgres://{}/{}".format('localhost:5432', self.database_name)
-        # self.database_path = "postgres://xfoqdfitjbxmna:28d96634f44caabf3b4dd33d047e4b843c573009b0d44d27b137d93af8e4b0bc@ec2-34-194-198-176.compute-1.amazonaws.com:5432/d1j2aumm0vcplh"
+        # self.database_path = "postgres://jkqgxdnohqspjq:e828a2faa6f5a316428fcbb75943eb9efbd57dcc8acde449ba6a2017d13903f7@ec2-54-234-44-238.compute-1.amazonaws.com:5432/d334p0v16ansb7"
         setup_db(self.app, self.database_path)
 
         # sample new concert
