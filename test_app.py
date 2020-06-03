@@ -4,7 +4,7 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 
 from app import create_app
-from models import setup_db, Concert, Player, Orchestra, add_test_data, db_drop_and_create_all
+from models import setup_db, Concert, Player, Orchestra, add_test_data, db_drop_and_create_all, db
 from config import jwt_tokens
 # from auth.auth import AuthError, requires_auth
 

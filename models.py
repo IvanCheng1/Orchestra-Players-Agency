@@ -8,9 +8,12 @@ from flask_migrate import Migrate, MigrateCommand
 
 database_name = "players"
 project_dir = os.path.dirname(os.path.abspath(__file__))
-database_path_local = "postgres://{}/{}".format(
+# database_path_local = "postgres://{}/{}".format(
     'localhost:5432', database_name)
-database_path = os.environ.get('DATABASE_URL', database_path_local)
+# database_path = os.environ.get('DATABASE_URL', database_path_local)
+database_path = os.environ.get('DATABASE_URL')
+# database_path = "postgres://xfoqdfitjbxmna:28d96634f44caabf3b4dd33d047e4b843c573009b0d44d27b137d93af8e4b0bc@ec2-34-194-198-176.compute-1.amazonaws.com:5432/d1j2aumm0vcplh"
+
 
 db = SQLAlchemy()
 
