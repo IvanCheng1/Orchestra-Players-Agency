@@ -8,7 +8,7 @@ from flask_migrate import Migrate, MigrateCommand
 
 database_name = "players"
 project_dir = os.path.dirname(os.path.abspath(__file__))
-# database_path_local = "postgres://{}/{}".format(
+database_path_local = "postgres://{}/{}".format(
     'localhost:5432', database_name)
 # database_path = os.environ.get('DATABASE_URL', database_path_local)
 database_path = os.environ.get('DATABASE_URL')
