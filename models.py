@@ -23,9 +23,6 @@ def setup_db(app, database_path=database_path):
     db.app = app
     db.init_app(app)
     db.create_all()
-    # add_test_data()
-
-    # migrate = Migrate(app, db)
 
 
 def db_drop_and_create_all():
@@ -39,22 +36,35 @@ def add_test_data():
         concert_date = '20200101'
     )
 
+    concert2 = Concert(
+        title = 'Mozart returns',
+        style = 'Classical',
+        concert_date = '20220101'
+    )
+
     player = Player(
         name = "Austin Pierce",
         instrument = "Violin",
         experience = 3
     )
 
+    player2 = Player(
+        name = "Harry Potter",
+        instrument = "Broom",
+        experience = 2
+    )
+
     player.insert()
+    player2.insert()
     concert.insert()
+    concert2.insert()
     db.session.commit()
 
 
 
-'''
-Concert
-
-'''
+#----------------------------------------------------------------------------#
+# Concert
+#----------------------------------------------------------------------------#
 class Concert(db.Model):
     __tablename__ = 'concert'
 
@@ -88,10 +98,9 @@ class Concert(db.Model):
         }
 
 
-'''
-Player
-
-'''
+#----------------------------------------------------------------------------#
+# Player
+#----------------------------------------------------------------------------#
 class Player(db.Model):
     __tablename__ = 'player'
 

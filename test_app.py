@@ -4,35 +4,60 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 
 from app import create_app
-from database.models import setup_db, Concert, Player
-from config.config import auth0_config
-print(os.environ['DATABASE_URI'])
+from models import setup_db, Concert, Player, add_test_data, db_drop_and_create_all
+from config import jwt_tokens
+# from auth.auth import AuthError, requires_auth
 
-class TriviaTestCase(unittest.TestCase):
+class AgencyTest(unittest.TestCase):
     """This class represents the trivia test case"""
 
     def setUp(self):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_name = "trivia_test"
+        self.database_name = "players_test"
         self.database_path = "postgres://{}/{}".format('localhost:5432', self.database_name)
+        # self.database_path = "postgres://gfkivkkacbfdtw:1f6615a42dee7a00e77ea56b97a09b35e85526f7b4bfaece1e8bc4fe14111ad8@ec2-3-231-16-122.compute-1.amazonaws.com:5432/daloe12oi67tmb"
         setup_db(self.app, self.database_path)
 
-        # sample question
-        self.new_question = {
-            'question': "What is our planet called?",
-            'answer': "Earth",
-            'difficulty': 1,
-            'category': 1
+        # start with sample data
+        db_drop_and_create_all()
+        add_test_data()
+
+        # sample new concert
+        self.new_concert = {
+            'title': "LSO returns!",
+            'style': "Romantic",
+            'concert_date': '20200901'
         }
 
-        # sample incomplete question
-        self.incomplete_question = {
-            'question': "",
-            'answer': "",
-            'difficulty': 1,
-            'category': 1
+        # sample incomplete new concert
+        self.incomplete_new_concert = {
+            'title': "LSO returns!",
+            'style': "Romantic"
+        }
+
+        # sample patch concert
+        self.patch_concert = {
+            'title': "LSO returns (updated)!"
+        }
+
+        # sample new player
+        self.new_player = {
+            'name': "Foo Bar",
+            'instrument': "Oboe",
+            'experience': 5
+        }
+
+        # sample incomplete new concert
+        self.incomplete_new_player = {
+            'name': "Foo Bar",
+            'instrument': "Oboe"
+        }
+
+        # sample patch player
+        self.patch_player = {
+            'name': "Foo Update Bar",
         }
 
         # binds the app to the current context
@@ -46,106 +71,316 @@ class TriviaTestCase(unittest.TestCase):
         """Executed after reach test"""
         pass
 
-    """
-    TODO
-    Write at least one test for each test for successful operation and for expected errors.
-    """
+    #----------------------------------------------------------------------------#
+    # Tests - GET concerts
+    #----------------------------------------------------------------------------#
 
-    def test_get_paginated_questions(self):
-
-        res = self.client().get('/questions')
+    def test_get_concerts_by_manager(self):
+        res = self.client().get('/concerts', headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
+        self.assertTrue(data['no_concerts'])
 
 
-    def test_get_nonexist_questions(self):
-
-        res = self.client().get('/questions?page=50000')
-        data = json.loads(res.data)
-
-        self.assertEqual(res.status_code, 404)
-        self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'resource not found')
-        
-
-    def test_get_category_questions(self):
-
-        res = self.client().get('/categories/1/questions')
+    def test_get_concerts_by_fixer(self):
+        res = self.client().get('/concerts', headers={
+            "Authorization": jwt_tokens['Concert_Fixer']
+        })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(data['current_category'])
-        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['no_concerts'])
 
-
-    def test_get_nonexist_category_questions(self):
-
-        res = self.client().get('/categories/1000000/questions')
-        data = json.loads(res.data)
-
-        self.assertEqual(res.status_code, 404)
-        self.assertEqual(data['success'], False)
-
-
-    def test_delete_question(self):
-
-        question = Question(
-            question = self.new_question['question'],
-            answer = self.new_question['answer'],
-            category = self.new_question['category'],
-            difficulty = self.new_question['difficulty']
-        )
-        
-        question.insert()
-
-        res = self.client().delete('/questions/{}'.format(question.id))
+    
+    def test_get_concerts_by_assistant(self):
+        res = self.client().get('/concerts', headers={
+            "Authorization": jwt_tokens['Concert_Assistant']
+        })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertEqual(data['deleted'], question.id)
+        self.assertTrue(data['no_concerts'])
+
+    #----------------------------------------------------------------------------#
+    # Tests - POST concerts
+    #----------------------------------------------------------------------------#
+
+    def test_post_concerts_by_manager(self):
+        res = self.client().post('/concerts', json=self.new_concert, headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['new_concert'])
+        self.assertTrue(data['concerts'])
 
 
-    def test_delete_nonexist_question(self):
-
-        res = self.client().delete('/questions/100000')
+    def test_error_422_post_incomplete_concerts_by_manager(self):
+        res = self.client().post('/concerts', json=self.incomplete_new_concert, headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'unprocessable')
 
+    
+    def test_error_401_post_concerts_by_fixer(self):
+        res = self.client().post('/concerts', json=self.new_concert, headers={
+            "Authorization": jwt_tokens['Concert_Fixer']
+        })
+        data = json.loads(res.data)
 
-    def test_submit_question(self):
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
 
-        res = self.client().post('/questions', json=self.new_question)
+
+    def test_error_401_post_concerts_by_assistant(self):
+        res = self.client().post('/concerts', json=self.new_concert, headers={
+            "Authorization": jwt_tokens['Concert_Assistant']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
+
+
+    #----------------------------------------------------------------------------#
+    # Tests - PATCH concerts
+    #----------------------------------------------------------------------------#
+
+    def test_patch_concerts_by_manager(self):
+        res = self.client().patch('/concerts/1', json=self.patch_concert, headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(data['created'])
+        self.assertTrue(data['updated_concert'])
 
 
-    def test_submit_incomplete_question(self):
+    def test_error_401_patch_concerts_by_fixer(self):
+        res = self.client().patch('/concerts/1', json=self.patch_concert, headers={
+            "Authorization": jwt_tokens['Concert_Fixer']
+        })
+        data = json.loads(res.data)
 
-        res = self.client().post('/questions', json=self.incomplete_question)
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
+
+    
+    def test_error_401_patch_concerts_by_assistant(self):
+        res = self.client().patch('/concerts/1', json=self.patch_concert, headers={
+            "Authorization": jwt_tokens['Concert_Assistant']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
+
+
+    #----------------------------------------------------------------------------#
+    # Tests - DELETE concerts
+    #----------------------------------------------------------------------------#
+
+    def test_delete_concerts_by_manager(self):
+        res = self.client().delete('/concerts/1', headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['deleted'])
+
+    
+    def test_error_401_delete_concerts_by_fixer(self):
+        res = self.client().delete('/concerts/2', headers={
+            "Authorization": jwt_tokens['Concert_Fixer']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
+
+
+    def test_error_401_delete_concerts_by_assistant(self):
+        res = self.client().delete('/concerts/2', headers={
+            "Authorization": jwt_tokens['Concert_Assistant']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
+
+    #----------------------------------------------------------------------------#
+    # Tests - GET players
+    #----------------------------------------------------------------------------#
+
+    def test_get_players_by_manager(self):
+        res = self.client().get('/players', headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['no_players'])
+        self.assertTrue(data['players'])
+
+
+    def test_get_players_by_fixer(self):
+        res = self.client().get('/players', headers={
+            "Authorization": jwt_tokens['Concert_Fixer']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['no_players'])
+        self.assertTrue(data['players'])
+
+    
+    def test_get_players_by_assistant(self):
+        res = self.client().get('/players', headers={
+            "Authorization": jwt_tokens['Concert_Assistant']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['no_players'])
+        self.assertTrue(data['players'])
+
+    #----------------------------------------------------------------------------#
+    # Tests - POST players
+    #----------------------------------------------------------------------------#
+
+    def test_post_players_by_manager(self):
+        res = self.client().post('/players', json=self.new_player, headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['new_player'])
+        self.assertTrue(data['players'])
+
+
+    def test_error_422_post_incomplete_players_by_manager(self):
+        res = self.client().post('/players', json=self.incomplete_new_player, headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'unprocessable')
 
-
-    def test_search_question(self):
-
-        res = self.client().post('/questions', json={'searchTerm':"actor"})
+    
+    def test_post_players_by_fixer(self):
+        res = self.client().post('/players', json=self.new_player, headers={
+            "Authorization": jwt_tokens['Concert_Fixer']
+        })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertEqual(data['total_questions'], 1)
+        self.assertTrue(data['new_player'])
+        self.assertTrue(data['players'])
+
+
+    def test_error_401_post_players_by_assistant(self):
+        res = self.client().post('/players', json=self.new_concert, headers={
+            "Authorization": jwt_tokens['Concert_Assistant']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
+
+
+    #----------------------------------------------------------------------------#
+    # Tests - PATCH players
+    #----------------------------------------------------------------------------#
+
+    def test_patch_players_by_manager(self):
+        res = self.client().patch('/players/1', json=self.patch_player, headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['updated_player'])
+
+
+    def test_patch_players_by_fixer(self):
+        res = self.client().patch('/players/2', json=self.patch_player, headers={
+            "Authorization": jwt_tokens['Concert_Fixer']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['updated_player'])
+
+
+    def test_error_401_patch_players_by_assistant(self):
+        res = self.client().patch('/players/1', json=self.patch_player, headers={
+            "Authorization": jwt_tokens['Concert_Assistant']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
+
+
+    #----------------------------------------------------------------------------#
+    # Tests - DELETE players
+    #----------------------------------------------------------------------------#
+
+    def test_delete_players_by_manager(self):
+        res = self.client().delete('/players/1', headers={
+            "Authorization": jwt_tokens['Concert_Manager']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['deleted'])
+
+    
+    def test_delete_players_by_fixer(self):
+        res = self.client().delete('/players/2', headers={
+            "Authorization": jwt_tokens['Concert_Fixer']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['deleted'])
+
+    
+    def test_error_401_delete_players_by_assistant(self):
+        res = self.client().delete('/players/2', headers={
+            "Authorization": jwt_tokens['Concert_Assistant']
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data['success'], False)
         
 
 # Make the tests conveniently executable

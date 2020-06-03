@@ -61,9 +61,12 @@ def create_app(test_config=None):
             abort(405)
 
         body = request.get_json()
-        title = body.get('title')
-        style = body.get('style')
-        concert_date = body.get('concert_date')
+        title = body.get('title', None)
+        style = body.get('style', None)
+        concert_date = body.get('concert_date', None)
+
+        if title is None or style is None or concert_date is None:
+            abort(422)
 
         try:
             concert = Concert(
@@ -175,9 +178,12 @@ def create_app(test_config=None):
             abort(405)
 
         body = request.get_json()
-        name = body.get('name')
-        instrument = body.get('instrument')
-        experience = body.get('experience')
+        name = body.get('name', None)
+        instrument = body.get('instrument', None)
+        experience = body.get('experience', None)
+
+        if name is None or instrument is None or experience is None:
+            abort(422)
 
         try:
             player = Player(
