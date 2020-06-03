@@ -6,7 +6,7 @@ Final Project for [Udacity Full-Stack Web Developer Nanodegree Program](https://
 
 ## Getting Started
 
-* Each roles' JWT token can be found at /config.py
+* Each roles' JWT token can be found at [config.py](https://github.com/IvanCheng1/Orchestra-Players-Agency/blob/master/config.py)
 * Heroku link is hosted at: [Orchestra-Agency](https://orchestra-agency.herokuapp.com/)
 
 ### Installing Dependencies
