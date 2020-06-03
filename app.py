@@ -16,8 +16,8 @@ def create_app(test_config=None):
     CORS(app)
 
     # To reset database
-    db_drop_and_create_all()
-    add_test_data()
+    # db_drop_and_create_all()
+    # add_test_data()
     
 
     @app.after_request
