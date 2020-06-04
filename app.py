@@ -4,7 +4,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
 
-from models import setup_db, db_drop_and_create_all, add_test_data, Concert, Player, Orchestra, db
+from models import (
+    setup_db, db_drop_and_create_all, add_test_data,
+    Concert, Player, Orchestra, db
+)
 from auth.auth import AuthError, requires_auth
 
 
@@ -18,7 +21,6 @@ def create_app(test_config=None):
     # To reset database
     # db_drop_and_create_all()
     # add_test_data()
-    
 
     @app.after_request
     def after_request(response):
@@ -28,9 +30,9 @@ def create_app(test_config=None):
                              'GET,PUT,POST,DELETE,OPTIONS')
         return response
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Concerts
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     '''
     Endpoint to handle GET requests for concerts
@@ -145,9 +147,9 @@ def create_app(test_config=None):
         except:
             abort(422)
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Players
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     '''
     Endpoint to handle GET requests for players
@@ -263,10 +265,9 @@ def create_app(test_config=None):
         except:
             abort(422)
 
-    
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Book players to concerts
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     '''
     Endpoint to handle POST requests for players
@@ -281,11 +282,12 @@ def create_app(test_config=None):
         concert_id = body.get('concert_id', None)
 
         # check if player already exist in concert
-        exists = Orchestra.query.filter_by(concert_id=concert_id, player_id=player_id).scalar() is not None
+        exists = Orchestra.query.filter_by(
+            concert_id=concert_id, player_id=player_id).scalar() is not None
 
         orchestra = Orchestra(
-            concert_id = concert_id,
-            player_id = player_id
+            concert_id=concert_id,
+            player_id=player_id
         )
 
         if concert_id is None or exists:
@@ -299,14 +301,21 @@ def create_app(test_config=None):
             'player': player_id
         })
 
-
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Error Handlers
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     @app.errorhandler(AuthError)
     def auth_error(error):
         return jsonify(error.error), error.status_code
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 400,
+            'message': 'bad request'
+        }), 400
 
     @app.errorhandler(401)
     def unauthorized(error):
@@ -315,7 +324,6 @@ def create_app(test_config=None):
             'error': 401,
             'message': 'unauthorized'
         }), 401
-
 
     @app.errorhandler(403)
     def forbidden(error):
@@ -350,6 +358,7 @@ def create_app(test_config=None):
         }), 422
 
     return app
+
 
 app = create_app()
 

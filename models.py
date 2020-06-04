@@ -12,7 +12,6 @@ database_path_local = "postgres://{}/{}".format(
     'localhost:5432', database_name)
 database_path = os.environ.get('DATABASE_URL', database_path_local)
 # database_path = os.environ.get('DATABASE_URL')
-# database_path = "postgres://jkqgxdnohqspjq:e828a2faa6f5a316428fcbb75943eb9efbd57dcc8acde449ba6a2017d13903f7@ec2-54-234-44-238.compute-1.amazonaws.com:5432/d334p0v16ansb7"
 
 
 db = SQLAlchemy()
@@ -74,9 +73,9 @@ def add_test_data():
     db.session.commit()
 
 
-#----------------------------------------------------------------------------#
+# ---------------------------------------------------------------------- #
 # Concert
-#----------------------------------------------------------------------------#
+# ---------------------------------------------------------------------- #
 class Concert(db.Model):
     __tablename__ = 'concert'
 
@@ -109,13 +108,14 @@ class Concert(db.Model):
             'title': self.title,
             'style': self.style,
             'concert_date': self.concert_date,
-            'players_booked': Orchestra.query.filter(Orchestra.concert_id == self.id).count()
+            'players_booked': Orchestra.query.filter(
+                Orchestra.concert_id == self.id).count()
         }
 
 
-#----------------------------------------------------------------------------#
+# ---------------------------------------------------------------------- #
 # Player
-#----------------------------------------------------------------------------#
+# ---------------------------------------------------------------------- #
 class Player(db.Model):
     __tablename__ = 'player'
 
@@ -148,12 +148,13 @@ class Player(db.Model):
             'name': self.name,
             'instrument': self.instrument,
             'experience': str(self.experience) + ' year(s)',
-            'concerts_booked': Orchestra.query.filter(Orchestra.player_id == self.id).count()
+            'concerts_booked': Orchestra.query.filter(
+                Orchestra.player_id == self.id).count()
         }
 
-#----------------------------------------------------------------------------#
+# ---------------------------------------------------------------------- #
 # Orchestra (association table)
-#----------------------------------------------------------------------------#
+# ---------------------------------------------------------------------- #
 
 
 class Orchestra(db.Model):

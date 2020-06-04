@@ -54,6 +54,7 @@ python3 app.py
 ### Models
 * Concerts with attributes title, style and concert date
 * Players with attributes name, years of experience and instrument
+* Orchestra - an association table with concert id and player id
 
 ### Roles
 * Assistant
@@ -89,8 +90,9 @@ Errors are returned as JSON objects in the following format:
 
 ```
 
-The API will return five error types when requests fail:
+The API will return six error types when requests fail:
 
+* 401: bad request
 * 401: unauthorized
 * 403: forbidden
 * 404: resource not found
