@@ -4,7 +4,10 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 
 from app import create_app
-from models import setup_db, Concert, Player, add_test_data, db_drop_and_create_all
+from models import (
+    setup_db, Concert, Player,
+    add_test_data, db_drop_and_create_all
+)
 from config import jwt_tokens
 # from auth.auth import AuthError, requires_auth
 
@@ -17,8 +20,8 @@ class AgencyTest(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client
         self.database_name = "players_test"
-        self.database_path = "postgres://{}/{}".format('localhost:5432', self.database_name)
-        # self.database_path = "postgres://jkqgxdnohqspjq:e828a2faa6f5a316428fcbb75943eb9efbd57dcc8acde449ba6a2017d13903f7@ec2-54-234-44-238.compute-1.amazonaws.com:5432/d334p0v16ansb7"
+        self.database_path = "postgres://{}/{}".format(
+            'localhost:5432', self.database_name)
         setup_db(self.app, self.database_path)
 
         # sample new concert
@@ -63,7 +66,7 @@ class AgencyTest(unittest.TestCase):
             self.db.init_app(self.app)
             # create all tables
             self.db.create_all()
-        
+
         # start with sample data
         db_drop_and_create_all()
         add_test_data()
@@ -72,9 +75,9 @@ class AgencyTest(unittest.TestCase):
         """Executed after reach test"""
         pass
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Tests - GET concerts
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     def test_get_concerts_by_manager(self):
         res = self.client().get('/concerts', headers={
@@ -106,9 +109,9 @@ class AgencyTest(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['no_concerts'])
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Tests - POST concerts
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     def test_post_concerts_by_manager(self):
         res = self.client().post('/concerts', json=self.new_concert, headers={
@@ -122,9 +125,10 @@ class AgencyTest(unittest.TestCase):
         self.assertTrue(data['concerts'])
 
     def test_error_422_post_incomplete_concerts_by_manager(self):
-        res = self.client().post('/concerts', json=self.incomplete_new_concert, headers={
-            "Authorization": jwt_tokens['Concert_Manager']
-        })
+        res = self.client().post(
+            '/concerts', json=self.incomplete_new_concert, headers={
+                "Authorization": jwt_tokens['Concert_Manager']
+            })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
@@ -149,14 +153,15 @@ class AgencyTest(unittest.TestCase):
         self.assertEqual(res.status_code, 401)
         self.assertEqual(data['success'], False)
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Tests - PATCH concerts
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     def test_patch_concerts_by_manager(self):
-        res = self.client().patch('/concerts/1', json=self.patch_concert, headers={
-            "Authorization": jwt_tokens['Concert_Manager']
-        })
+        res = self.client().patch(
+            '/concerts/1', json=self.patch_concert, headers={
+                "Authorization": jwt_tokens['Concert_Manager']
+            })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -164,26 +169,28 @@ class AgencyTest(unittest.TestCase):
         self.assertTrue(data['updated_concert'])
 
     def test_error_401_patch_concerts_by_fixer(self):
-        res = self.client().patch('/concerts/1', json=self.patch_concert, headers={
-            "Authorization": jwt_tokens['Concert_Fixer']
-        })
+        res = self.client().patch(
+            '/concerts/1', json=self.patch_concert, headers={
+                "Authorization": jwt_tokens['Concert_Fixer']
+            })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 401)
         self.assertEqual(data['success'], False)
 
     def test_error_401_patch_concerts_by_assistant(self):
-        res = self.client().patch('/concerts/1', json=self.patch_concert, headers={
-            "Authorization": jwt_tokens['Concert_Assistant']
-        })
+        res = self.client().patch(
+            '/concerts/1', json=self.patch_concert, headers={
+                "Authorization": jwt_tokens['Concert_Assistant']
+            })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 401)
         self.assertEqual(data['success'], False)
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Tests - DELETE concerts
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     def test_delete_concerts_by_manager(self):
         res = self.client().delete('/concerts/1', headers={
@@ -213,9 +220,9 @@ class AgencyTest(unittest.TestCase):
         self.assertEqual(res.status_code, 401)
         self.assertEqual(data['success'], False)
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Tests - GET players
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     def test_get_players_by_manager(self):
         res = self.client().get('/players', headers={
@@ -250,9 +257,9 @@ class AgencyTest(unittest.TestCase):
         self.assertTrue(data['no_players'])
         self.assertTrue(data['players'])
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Tests - POST players
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     def test_post_players_by_manager(self):
         res = self.client().post('/players', json=self.new_player, headers={
@@ -266,9 +273,10 @@ class AgencyTest(unittest.TestCase):
         self.assertTrue(data['players'])
 
     def test_error_422_post_incomplete_players_by_manager(self):
-        res = self.client().post('/players', json=self.incomplete_new_player, headers={
-            "Authorization": jwt_tokens['Concert_Manager']
-        })
+        res = self.client().post(
+            '/players', json=self.incomplete_new_player, headers={
+                "Authorization": jwt_tokens['Concert_Manager']
+            })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
@@ -295,14 +303,15 @@ class AgencyTest(unittest.TestCase):
         self.assertEqual(res.status_code, 401)
         self.assertEqual(data['success'], False)
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Tests - PATCH players
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     def test_patch_players_by_manager(self):
-        res = self.client().patch('/players/1', json=self.patch_player, headers={
-            "Authorization": jwt_tokens['Concert_Manager']
-        })
+        res = self.client().patch(
+            '/players/1', json=self.patch_player, headers={
+                "Authorization": jwt_tokens['Concert_Manager']
+            })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -310,9 +319,10 @@ class AgencyTest(unittest.TestCase):
         self.assertTrue(data['updated_player'])
 
     def test_patch_players_by_fixer(self):
-        res = self.client().patch('/players/2', json=self.patch_player, headers={
-            "Authorization": jwt_tokens['Concert_Fixer']
-        })
+        res = self.client().patch(
+            '/players/2', json=self.patch_player, headers={
+                "Authorization": jwt_tokens['Concert_Fixer']
+            })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -320,17 +330,18 @@ class AgencyTest(unittest.TestCase):
         self.assertTrue(data['updated_player'])
 
     def test_error_401_patch_players_by_assistant(self):
-        res = self.client().patch('/players/1', json=self.patch_player, headers={
-            "Authorization": jwt_tokens['Concert_Assistant']
-        })
+        res = self.client().patch(
+            '/players/1', json=self.patch_player, headers={
+                "Authorization": jwt_tokens['Concert_Assistant']
+            })
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 401)
         self.assertEqual(data['success'], False)
 
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
     # Tests - DELETE players
-    #----------------------------------------------------------------------------#
+    # ---------------------------------------------------------------------- #
 
     def test_delete_players_by_manager(self):
         res = self.client().delete('/players/1', headers={
